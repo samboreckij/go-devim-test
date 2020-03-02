@@ -6,8 +6,8 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
-	"./env"
 	msg "./my_message"
+	"github.com/go-snorlax/env"
 	"github.com/streadway/amqp"
 )
 
@@ -35,17 +35,37 @@ func main() {
 		nil,           // arguments
 	)
 	failOnError(err, "Failed to declare a queue")
+	/*
+		body := "Hello World!"
+		err = ch.Publish(
+			"",     // exchange
+			q.Name, // routing key
+			false,  // mandatory
+			false,  // immediate
+			amqp.Publishing{
+				ContentType: "text/plain",
+				Body:        []byte(body)
+			})
+		log.Printf(" [x] Sent %s", body)
+		failOnError(err, "Failed to publish a message") */
+	//Sending messages
+	forever := make(chan bool)
 
-	body := "Hello World!"
-	err = ch.Publish(
-		"",     // exchange
-		q.Name, // routing key
-		false,  // mandatory
-		false,  // immediate
-		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte(body)
-		})
-	log.Printf(" [x] Sent %s", body)
-	failOnError(err, "Failed to publish a message")
+	go func() {
+
+		for d := range msgs {
+			//log.Printf("Received a message: %s", d.Body)
+			numMessage := &msg.Message{}
+			if err := proto.Unmarshal(d.Body, numMessage); err != nil {
+				log.Fatalln("Failed to parse message:", err)
+			}
+			if numMessage.GetNumber()%denominator == 0 {
+				addToStorage(counter, numMessage.GetNumber(), storage)
+			}
+		}
+		viewStorage(storage)
+	}()
+
+	//log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
+	<-forever
 }

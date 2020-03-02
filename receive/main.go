@@ -6,8 +6,8 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
-	"./env"
 	msg "./my_message"
+	"github.com/go-snorlax/env"
 	"github.com/streadway/amqp"
 )
 
@@ -32,7 +32,7 @@ func main() {
 	var storage = make(map[int64]int64)
 
 	//Trying connect to RabbitMQ
-	conn, err := amqp.Dial("amqp://guest:guest@0.0.0.0:5672/")
+	conn, err := amqp.Dial("amqp://guest:guest@127.0.0.1:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
